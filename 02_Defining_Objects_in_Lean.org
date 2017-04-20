@@ -75,6 +75,31 @@ print list
 check bool
 print bool
 #+END_SRC
+
+#+RESULTS:
+#+begin_example
+ℕ : Type
+inductive nat : Type
+constructors:
+nat.zero : ℕ
+nat.succ : ℕ → ℕ
+ℤ : Type
+inductive int : Type
+constructors:
+int.of_nat : ℕ → ℤ
+int.neg_succ_of_nat : ℕ → ℤ
+list : Type u_1 → Type u_1
+inductive list : Type u → Type u
+constructors:
+list.nil : Π {T : Type u}, list T
+list.cons : Π {T : Type u}, T → list T → list T
+bool : Type
+inductive bool : Type
+constructors:
+bool.ff : bool
+bool.tt : bool
+#+end_example
+
 You can use the unicode symbols =ℕ= and =ℤ= for nat and int,
 respectively. The first can be entered with =\N= or =\nat=, and the
 second can be entered with =\Z= or =\int=.
@@ -90,6 +115,15 @@ vm_eval 1 :: 2 :: 3 :: [4, 5] ++ [6, 7, 8]
 check tt && (ff || tt)
 vm_eval tt && (ff || tt)
 #+END_SRC
+
+#+RESULTS:
+: 3 + 6 * 9 : ℕ
+: 57
+: [1, 2, 3, 4, 5] ++ [6, 7, 8] : list ℕ
+: [1, 2, 3, 4, 5, 6, 7, 8]
+: tt && (ff || tt) : bool
+: tt
+
 Remember that, by default, a numeral denotes a natural number. You can
 always specify an intended type =t= for an expression =e= by writing
 =(e : t)=. In that case, Lean does its best to interpret the expression as
@@ -102,6 +136,12 @@ check (3 + 6 * 9 : ℤ)
 
 vm_eval (3 + 6 * 9 : ℤ)
 #+END_SRC
+
+#+RESULTS:
+: 3 : ℤ
+: 3 + 6 * 9 : ℤ
+: 3 + 6 * 9 : ℤ
+: 57
 
 We can also declare variables ranging over elements and types.
 #+BEGIN_SRC lean
@@ -117,6 +157,13 @@ check u + v * w
 check m :: l₁ ++ l₂
 check s₁ ++ a :: s₂
 #+END_SRC
+
+#+RESULTS:
+: m + n * k : ℕ
+: u + v * w : ℤ
+: m :: l₁ ++ l₂ : list ℕ
+: s₁ ++ a :: s₂ : list α
+
 The standard library adopts the convention of using the Greek letters =α=,
 =β=, and =γ= to range over types. You can type these with =\a=, =\b=, and
 =\g=, respectively. You can type subscripts with =\0=, =\1=, =\2=, and
@@ -131,6 +178,10 @@ variables u v w : ℤ
 check v + m
 -- END
 #+END_SRC
+
+#+RESULTS:
+: v + ↑m : ℤ
+
 The presence of a coercion is indicated by Lean's output, =v + ↑m :
 ℤ=. Since Lean infers types sequentially as it processes an
 expression, you need to indicate the coercion manually if you write
@@ -143,6 +194,10 @@ variables u v w : ℤ
 check ↑m + v
 -- END
 #+END_SRC
+
+#+RESULTS:
+: ↑m + v : ℤ
+
 You can type the up arrow by writing =\u=. This is notation for a
 generic coercion function, and Lean finds the appropriate one using
 type classes, as described below. The notations =+=, =*=, =++=
@@ -158,6 +213,21 @@ print mul
 check @append
 print append
 #+END_SRC
+
+#+RESULTS:
+#+begin_example
+add : Π {α : Type u_1} [_inst_1 : has_add α], α → α → α
+@[pattern]
+def add : Π {α : Type u} [_inst_1 : has_add α], α → α → α :=
+λ {α : Type u} [_inst_1 : has_add α], has_add.add
+mul : Π {α : Type u_1} [_inst_1 : has_mul α], α → α → α
+def mul : Π {α : Type u} [_inst_1 : has_mul α], α → α → α :=
+λ {α : Type u} [_inst_1 : has_mul α], has_mul.mul
+append : Π {α : Type u_1} [_inst_1 : has_append α], α → α → α
+def append : Π {α : Type u} [_inst_1 : has_append α], α → α → α :=
+λ {α : Type u} [_inst_1 : has_append α], has_append.append
+#+end_example
+
 Here, the =@= symbol before the name of the function indicates that
 Lean should display arguments that are usually left implicit. These
 are called, unsurprisingly, /implicit arguments/. In the examples
@@ -169,6 +239,13 @@ check nat.mul
 check list.append
 check list.cons
 #+END_SRC
+
+#+RESULTS:
+: nat.add : ℕ → ℕ → ℕ
+: nat.mul : ℕ → ℕ → ℕ
+: list.append : list ?M_1 → list ?M_1 → list ?M_1
+: list.cons : ?M_1 → list ?M_1 → list ?M_1
+
 When generic functions and notations are available, however, it is
 usually better to use them, because Lean's automation is designed to
 work well with generic functions and facts.
@@ -189,6 +266,17 @@ eval (n, b).1
 eval (2, 3).1
 vm_eval (2, 3).1
 #+END_SRC
+
+#+RESULTS:
+: α × β : Type
+: (a₁, a₂) : α × α
+: (n, b) : ℕ × β
+: p^.fst : α
+: p^.snd : β
+: n
+: 2
+: 2
+
 It interprets tuples as iterated products, associated to the right:
 #+BEGIN_SRC lean
 variables α β : Type
@@ -198,6 +286,12 @@ check (n, a₁, b)
 eval (n, a₁, b).2
 eval (n, a₁, b).2.2
 #+END_SRC
+
+#+RESULTS:
+: (n, a₁, b) : ℕ × α × β
+: (a₁, b)
+: b
+
 Lean also knows about subtypes and option types, which are described
 in the next chapter.
 
@@ -210,6 +304,9 @@ definition foo : ℕ := 3
 
 def bar : ℕ := 2 + 2
 #+END_SRC
+
+#+RESULTS:
+
 As with the =check= command, Lean first attempts to elaborate the
 given expression, which is to say, fill in all the information that is
 left implicit. After that, it checks to make sure that the expression
@@ -232,6 +329,14 @@ check g a₂ b
 check f (g a₂ b)
 check g (f (g a₂ b))
 #+END_SRC
+
+#+RESULTS:
+: f n : α
+: g a₁ : β → ℕ
+: g a₂ b : ℕ
+: f (g a₂ b) : α
+: g (f (g a₂ b)) : β → ℕ
+
 Conversely, functions are introduced using =λ= abstraction.
 #+BEGIN_SRC lean
 variables (α : Type) (n : ℕ) (i : ℤ)
@@ -243,6 +348,15 @@ check λ x, x + i
 check λ x y, x + y + 1
 check λ x : α, x
 #+END_SRC
+
+#+RESULTS:
+: λ (x : ℕ), x + 3 : ℕ → ℕ
+: λ (x : ℕ), x + 3 : ℕ → ℕ
+: λ (x : ℕ), x + n : ℕ → ℕ
+: λ (x : ℤ), x + i : ℤ → ℤ
+: λ (x y : ℕ), x + y + 1 : ℕ → ℕ → ℕ
+: λ (x : α), x : α → α
+
 As the examples make clear, you can leave out the type of the
 abstracted variable when it can be inferred. The following two
 definitions mean the same thing:
@@ -250,17 +364,26 @@ definitions mean the same thing:
 def foo : ℕ → ℕ := λ x : ℕ, x + 3
 def bar := λ x, x + 3
 #+END_SRC
+
+#+RESULTS:
+
 Instead of using a lambda, you can abstract variables by putting them
 before the colon:
 #+BEGIN_SRC lean
 def foo (x y : ℕ) : ℕ := x + y + 3
 def bar x y := x + y + 3
 #+END_SRC
+
+#+RESULTS:
+
 You can even test a definition without adding it to the environment,
 using the =example= command:
 #+BEGIN_SRC lean
 example x y := x + y + 3
 #+END_SRC
+
+#+RESULTS:
+
 When variables have been declared, functions implicitly depend on the
 variables mentioned in the definition:
 #+BEGIN_SRC lean
@@ -276,6 +399,11 @@ check bar
 check baz
 #+END_SRC
 
+#+RESULTS:
+: foo : Π (α : Type), α → α
+: bar : ℕ → ℕ → ℕ
+: baz : ℕ → ℕ → ℕ
+
 Evaluating expressions involving abstraction and application has the expected behavior:
 #+BEGIN_SRC lean
 eval (λ x, x + 3) 2
@@ -286,6 +414,13 @@ def foo (x : ℕ) : ℕ := x + 3
 eval foo 2
 vm_eval foo 2
 #+END_SRC
+
+#+RESULTS:
+: 5
+: 5
+: 5
+: 5
+
 Both expressions evaluate to 5.
 
 In the CIC, types are just certain kinds of objects, so functions can
@@ -305,6 +440,12 @@ check id
 
 end hide
 #+END_SRC
+
+#+RESULTS:
+: id ℕ 3 : ℕ
+: 3
+: id : Π (α : Type), α → α
+
 Lean indicates that the type of =id= is =Π α : Type, α → α=. This is
 an example of a /pi type/, also known as a dependent function type,
 since the type of the second argument to =id= depends on the first.
@@ -326,6 +467,12 @@ check id
 
 end hide
 #+END_SRC
+
+#+RESULTS:
+: id 3 : ℕ
+: 3
+: id : ?M_1 → ?M_1
+
 In case an implicit argument follows the last given argument in a
 function application, Lean inserts the implicit argument eagerly and
 tries to infer it. Using double curly braces ={{= ... =}}=, or the
@@ -340,6 +487,10 @@ check (id₁ : ℕ → ℕ)
 check (id₂ : Π α : Type, α → α)
 #+END_SRC
 
+#+RESULTS:
+: id₁ : ℕ → ℕ
+: id₂ : Π ⦃α : Type⦄, α → α
+
 In the next section, we will see that Lean supports a hierarchy of
 type universes, so that the following definition of the identity
 function is more general:
@@ -353,6 +504,9 @@ def id {α : Type u} (x : α) := x
 
 end hide
 #+END_SRC
+
+#+RESULTS:
+
 If you =check @list.append=, you will see that, similarly, the append
 function takes two lists of elements of any type, where the type can
 occur in any type universe.
@@ -366,6 +520,10 @@ variable v : vec 3
 
 check foo v
 #+END_SRC
+
+#+RESULTS:
+: foo v : vec 3
+
 This is precisely the sense in which dependent type theory is dependent.
 
 The CIC also supports recursive definitions on inductively defined
@@ -377,6 +535,9 @@ def exp (x : ℕ) : ℕ → ℕ
 | 0      := 1
 | (succ n) := exp n * (succ n)
 #+END_SRC
+
+#+RESULTS:
+
 We will provide lots of examples of those in the next chapter.
 
 ** Defining New Types
@@ -393,6 +554,10 @@ execute the following,
 universe variable u
 check Type u
 #+END_SRC
+
+#+RESULTS:
+: Type u : Type (u+1)
+
 you will see that each =Type u= itself has type =Type (u+1)=. The notation
 =Type= is shorthand for =Type 0=, which is a shorthand for =Sort 1=.
 
@@ -421,6 +586,9 @@ inductive nat : Type
 
 end hide
 #+END_SRC
+
+#+RESULTS:
+
 So is the type of lists of elements of a given type =α=:
 #+BEGIN_SRC lean
 namespace hide
@@ -435,6 +603,9 @@ inductive list (α : Type u) : Type u
 
 end hide
 #+END_SRC
+
+#+RESULTS:
+
 The booleans form an inductive type, as do, indeed, any finitely
 enumerated type:
 #+BEGIN_SRC lean
@@ -453,6 +624,9 @@ inductive Beatle : Type
 -- END
 end hide
 #+END_SRC
+
+#+RESULTS:
+
 So are the type of binary trees, and the type of countably branching
 trees in which every node has children indexed by the type of natural
 numbers:
@@ -465,6 +639,9 @@ inductive nat_tree : Type
 | empty : nat_tree
 | sup   : (ℕ → nat_tree) → nat_tree
 #+END_SRC
+
+#+RESULTS:
+
 What these examples all have in common is that the associated types
 are built up freely and inductively by the given /constructors/. For
 example, we can build some binary trees:
@@ -478,6 +655,11 @@ check binary_tree.empty
 check binary_tree.cons (binary_tree.empty) (binary_tree.empty)
 -- END
 #+END_SRC
+
+#+RESULTS:
+: binary_tree.empty : binary_tree
+: binary_tree.cons binary_tree.empty binary_tree.empty : binary_tree
+
 If we open the namespace =binary_tree=, we can use shorter names:
 #+BEGIN_SRC lean
 inductive binary_tree : Type
@@ -490,6 +672,10 @@ open binary_tree
 check cons empty (cons (cons empty empty) empty)
 -- END
 #+END_SRC
+
+#+RESULTS:
+: cons empty (cons (cons empty empty) empty) : binary_tree
+
 In the Lean library, the identifier =empty= is used as a generic
 notation for things like the empty set, so opening the =binary_tree=
 namespaces means that the constant is overloaded. If you write =check
@@ -516,6 +702,9 @@ under definition appears as a parameter to the =list= type:
 inductive tree (α : Type) : Type
 | node : α → list tree → tree
 #+END_SRC
+
+#+RESULTS:
+
 Such definitions are /not/ among Lean's axoimatic primitives; rather,
 they are compiled down to more primitive constructions.
 
@@ -530,6 +719,9 @@ constructor.
 record color : Type :=
 mk :: (red : ℕ) (green : ℕ) (blue : ℕ) (name : string)
 #+END_SRC
+
+#+RESULTS:
+
 Here, =mk= is the constructor (if ommitted, Lean assumes it is =mk= by
 default), and =red=, =green=, =blue=, and =name= project the four
 values that are used to construct an element of =color=.
@@ -546,6 +738,12 @@ vm_eval color.blue purple
 vm_eval color.name purple
 -- END
 #+END_SRC
+
+#+RESULTS:
+: 150
+: 0
+: 150
+: "purple"
 
 Because records are so important, Lean provides useful notation for
 dealing with them. For example, when the type of the record can be
@@ -566,6 +764,13 @@ vm_eval purple.3
 vm_eval purple.4
 -- END
 #+END_SRC
+
+#+RESULTS:
+: 150
+: 0
+: 150
+: "purple"
+
 Alternatively, one can use the notation =^.= to extract the relevant
 projections:
 #+BEGIN_SRC lean
@@ -581,6 +786,13 @@ vm_eval purple^.blue
 vm_eval purple^.name
 -- END
 #+END_SRC
+
+#+RESULTS:
+: 150
+: 0
+: 150
+: "purple"
+
 When the type of the record can be inferred, you can also use the
 following notation to build an instance, explicitly naming each
 component:
@@ -593,6 +805,9 @@ def purple : color :=
 { red := 150, blue := 0, green := 150, name := "purple" }
 -- END
 #+END_SRC
+
+#+RESULTS:
+
 You can also use the =with= keyword for /record update/, that is, to
 define an instance of a new record by modifying an existing one:
 #+BEGIN_SRC lean
@@ -609,6 +824,10 @@ vm_eval mauve^.red
 vm_eval mauve^.green
 -- END
 #+END_SRC
+
+#+RESULTS:
+: 150
+: 100
 
 Lean provides extensive support for reasoning generically about
 algebraic structures, in particular, allowing the inheritance and
@@ -630,6 +849,9 @@ class has_mul (α : Type u) := (mul : α → α → α)
 
 end hide
 #+END_SRC
+
+#+RESULTS:
+
 The =class= command not only defines a structure (in the cases above,
 each storing only one piece of data), but also marks them as targets
 for /class inference/. The symbol =*= is notation for the identifier
@@ -638,6 +860,10 @@ implicit argument for an element of =has_mul=:
 #+BEGIN_SRC lean
 check @mul
 #+END_SRC
+
+#+RESULTS:
+: mul : Π {α : Type u_1} [_inst_1 : has_mul α], α → α → α
+
 The sole element of the =has_mul= structure is the relevant
 multiplication, which should be inferred from the
 type =α= of the arguments. Given an expression =a * b= where =a= and
@@ -667,6 +893,9 @@ class monoid (α : Type u) extends semigroup α, has_one α :=
 
 end hide
 #+END_SRC
+
+#+RESULTS:
+
 There are a few things to note here. First, these definitions are
 introduced as =class= definitions also. This marks them as eligible for
 class inference, enabling Lean to find the =semigroup=,
@@ -692,6 +921,10 @@ variables a b : M
 
 check a * 1 * b
 #+END_SRC
+
+#+RESULTS:
+: a * 1 * b : M
+
 The declaration =[monoid M]= declares a variable ranging over the
 monoid structure, but leaves it anonymous. The variable is
 automatically inserted in any definition that depends on =M=, and is
@@ -702,6 +935,9 @@ sense in any structure with a multiplication.
 universe variable u
 def square {α : Type u} [has_mul α] (x : α) : α := x * x
 #+END_SRC
+
+#+RESULTS:
+
 Because =monoid= is an instance of =has_mul=, we can then use the
 generic squaring operation in any monoid.
 #+BEGIN_SRC lean
@@ -715,6 +951,9 @@ variables a b : M
 check square a * square b
 -- END
 #+END_SRC
+
+#+RESULTS:
+: square a * square b : M
 
 ** Nonconstructive Definitions
 :PROPERTIES:
@@ -734,6 +973,9 @@ if h : (∃ n : ℕ, p n) then some h else 0
 noncomputable def inverse (f : ℕ → ℕ) (n : ℕ) : ℕ :=
 if h : (∃ m : ℕ, f m = n) then some h else 0
 #+END_SRC
+
+#+RESULTS:
+
 In this example, declaring the type class instance =prop_decidable=
 allows us to use a classical definition by cases, depending on whether
 an arbitrary proposition is true or false. Given an arbitrary
@@ -761,6 +1003,9 @@ epsilon p
 noncomputable def inverse (f : ℕ → ℕ) (n : ℕ) : ℕ :=
 epsilon (λ m, f m = n)
 #+END_SRC
+
+#+RESULTS:
+
 The definitions rely on the fact that Lean can infer (again using
 type class inference) that the natural numbers are nonempty. The
 =epsilon= operator is, in turn, defined from an even more fundamental
@@ -782,3 +1027,7 @@ print axioms choose
 print axioms inverse
 -- END
 #+END_SRC
+
+#+RESULTS:
+: classical.strong_indefinite_description
+: classical.strong_indefinite_description

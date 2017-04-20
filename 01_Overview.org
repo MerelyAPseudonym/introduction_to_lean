@@ -14,6 +14,12 @@ yourself."
 #+BEGIN_SRC lean
 check "hello world!"
 #+END_SRC
+
+#+RESULTS:
+: "hello world!" : string
+
+
+
 The response from Lean appears in the small window underneath the
 editor text, and also in popup windows that you can read when you
 hover over the indicators in the left margin. Alternatively, if you
@@ -60,6 +66,17 @@ inductive nat : Type
 
 end hide
 #+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC lean :prologue "namespace hide\n" :epilogue "end hide"
+  inductive nat : Type
+  | zero : nat
+  | succ : nat → nat
+#+END_SRC
+
+#+RESULTS:
+
 If you copy this definition into the editor window at right you will
 see that we have wrapped it in a /namespace/ to avoid conflicting with
 the standard definition, which is loaded by default. Even so, choosing
@@ -84,6 +101,9 @@ def add : nat → nat → nat
 
 end hide
 #+END_SRC
+
+#+RESULTS:
+
 Lean compiles definitions like these down to a single axiomatic
 primitive that governs use of both induction and recursion on
 inductively defined structures. The library defines notation for the
@@ -99,6 +119,9 @@ explicit definition:
 #+BEGIN_SRC lean
 def double (n : ℕ) : ℕ := n + n
 #+END_SRC
+
+#+RESULTS:
+
 We can then go on to define other data types like the integers, the
 rationals, and the real numbers, the booleans, characters and strings,
 lists, products, disjoint sums, and so on. We can also define
@@ -114,6 +137,11 @@ can interpret basic objects and infer their types:
 check (27 + 9) * 33
 check [(1, 2), (3, 4), (5, 6)] ++ [(7, 8), (9, 10)]
 #+END_SRC
+
+#+RESULTS:
+: (27 + 9) * 33 : ℕ
+: [(1, 2), (3, 4), (5, 6)] ++ [(7, 8), (9, 10)] : list (ℕ × ℕ)
+
 When there is no other information present to constrain the type of a
 numeral, Lean assumes it denotes a natural, by default. Thus Lean can
 recognize that the first expression denotes a natural number, and that
@@ -129,6 +157,12 @@ check double
 print double
 -- END
 #+END_SRC
+
+#+RESULTS:
+: double : ℕ → ℕ
+: def double : ℕ → ℕ :=
+: λ (n : ℕ), n + n
+
 Lean can reason about abstract objects as well as it can reason about
 concrete ones. In the following example, we declare a type =G= with a
 group structure, and variables =g₁= and =g₂= that range over =G=. With
@@ -142,6 +176,10 @@ section
   check g₂⁻¹ * g₁ * g₂
 end
 #+END_SRC
+
+#+RESULTS:
+: g₂⁻¹ * g₁ * g₂ : G
+
 Putting the declarations in a =section=, as we do here, delimits their
 scope. In this case, the section declaration is not needed, and no
 harm would be done if we had declared these variables at the top
@@ -158,6 +196,10 @@ numeral. Lean's kernel can carry out this evaluation:
 #+BEGIN_SRC lean
 eval (27 + 9) * 33
 #+END_SRC
+
+#+RESULTS:
+: 1188
+
 As part of the kernel, the results of this evaluation can be highly
 trusted. The evaluator is not very efficient, however, and is not
 intended to be used for substantial computational tasks. For that
@@ -175,6 +217,13 @@ vm_eval double 9999
 vm_eval [(1, 2), (3, 4), (5, 6)] ++ [(7, 8), (9, 10)]
 -- END
 #+END_SRC
+
+#+RESULTS:
+: 1188
+: 403458
+: 19998
+: [(1, 2), (3, 4), (5, 6), (7, 8), (9, 10)]
+
 Relying on results from the bytecode evaluator requires a higher level
 of trust than relying on the kernel. For example, for efficiency, the
 bytecode evaluator usses the GNU multiple precision library to carry out
@@ -207,6 +256,9 @@ def insertion_sort : list α → list α
 
 end sort
 #+END_SRC
+
+#+RESULTS:
+
 For foundational reasons, types in Lean have to be stratified into a
 hierarchy of /type universes/, and the definitions above work for any
 type =α= in any such universe. We can run the procedure above on a
@@ -231,12 +283,19 @@ end sort
 vm_eval insertion_sort (λ m n : ℕ, m ≤ n) [5, 27, 221, 95, 17, 43, 7, 2, 98, 567, 23, 12]
 -- END
 #+END_SRC
+
+#+RESULTS:
+: [2, 5, 7, 12, 17, 23, 27, 43, 95, 98, 221, 567]
+
 Substantial programs can be written in Lean and run by the bytecode
 interpreter. You can profile your code by setting the relevant options:
 #+BEGIN_SRC lean
 set_option profiler true
 set_option profiler.freq 10
 #+END_SRC
+
+#+RESULTS:
+
 The second determines the frequency that the virtual machine is
 polled. Be careful: if the task you profile is too short, there won't
 be any output! You can even implement your own [[https://github.com/leanprover/lean/tree/master/library/tools/debugger][debugger]] in Lean
@@ -262,6 +321,9 @@ is even:
 #+BEGIN_SRC lean
 def even (n : ℕ) : Prop := ∃ m, n = 2 * m
 #+END_SRC
+
+#+RESULTS:
+
 As presented, it is not clear that the property of begin even is
 decidable, since we cannot in general test ever natural number to
 determine whether any of them serves as a witness to the given
@@ -277,6 +339,13 @@ check ∀ n, even n ∨ even (n + 1)
 check ∀ n m, even n → even m → even (n + m)
 -- END
 #+END_SRC
+
+#+RESULTS:
+: even 10 : Prop
+: even 11 : Prop
+: ∀ (n : ℕ), even n ∨ even (n + 1) : Prop
+: ∀ (n m : ℕ), even n → even m → even (n + m) : Prop
+
 In each case, the expression has type =Prop=, indicating the Lean
 recognizes it as an assertion.
 
@@ -306,6 +375,9 @@ def even (n : ℕ) : Prop := ∃ m, n = 2 * m
 example : even 10 := ⟨5, rfl⟩
 -- END
 #+END_SRC
+
+#+RESULTS:
+
 In general, to prove an existential statement, it is enough to present
 a witness to the existential quantifier and then show that the
 subsequent claim is true of that witness. The unicode angle brackets
@@ -338,6 +410,9 @@ show even (n + m),
   from ⟨_, this⟩
 -- END
 #+END_SRC
+
+#+RESULTS:
+
 Again, we emphasize that the proof is really just an expression in
 dependent type theory, presenting with syntactic sugar that makes it
 look somewhat like any informal mathematical proof. There is also a
@@ -365,6 +440,8 @@ begin
 end
 -- END
 #+END_SRC
+
+#+RESULTS:
 
 Just as we can prove statements about the natural numbers, we can also
 reason about computer programs written in Lean, because these, too,
@@ -451,6 +528,9 @@ meta def contra : tactic unit :=
 do ctx ← local_context,
    contra_aux ctx ctx
 #+END_SRC
+
+#+RESULTS:
+
 Having defined this procedure, we can then use it to prove theorems:
 #+BEGIN_SRC lean
 open expr tactic
@@ -476,6 +556,9 @@ example (p q r : Prop) (h₁ : p ∧ q) (h₂ : q → r) (h₃ : ¬ (p ∧ q)) :
 by contra
 -- END
 #+END_SRC
+
+#+RESULTS:
+
 The results of such a tactic are always checked by the Lean kernel, so
 they can be trusted, even if the code itself is buggy. If the kernel
 fails to type check the resulting term, it raises an error, and the

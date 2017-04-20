@@ -24,6 +24,14 @@ check not  -- Prop → Prop
 check p ∧ (p → r)
 check p ∧ ¬ (q ∨ ¬ r)
 #+END_SRC
+
+#+RESULTS:
+: and : Prop → Prop → Prop
+: or : Prop → Prop → Prop
+: not : Prop → Prop
+: p ∧ (p → r) : Prop
+: p ∧ ¬(q ∨ ¬r) : Prop
+
 There is no corresponding constant for implication: if =p= and =q= are
 propositions, the arrow in =p → q= is in fact an instance of the arrow
 used to construct function spaces. We will return to this in the next
@@ -43,6 +51,13 @@ check p m ∧ ¬ r m n → q n
 check ∀ x, p x → q x
 check ∀ x, ∃ y, r x y
 #+END_SRC 
+
+#+RESULTS:
+: p m ∧ q n : Prop
+: p m ∧ ¬r m n → q n : Prop
+: ∀ (x : ℕ), p x → q x : Prop
+: ∀ (x : ℕ), ∃ (y : ℕ), r x y : Prop
+
 The universal quantifier is really an instance of the dependent
 function space construction; again, more on this in the next
 section. Lean notation supports bounded quantifiers:
@@ -58,6 +73,11 @@ variables (α : Type) (s t : list α) (a b : α)
 check ∀ x ∈ s, x ∈ t
 -- END
 #+END_SRC
+
+#+RESULTS:
+: ∀ (x : ℕ), x ≤ n → p x → q x : Prop
+: ∀ (x : α), x ∈ s → x ∈ t : Prop
+
 With these resources, we can start writing substantial mathematical
 assertions:
 #+BEGIN_SRC lean
@@ -86,6 +106,9 @@ def twin_primes : Prop := ∀ n, ∃ p > n, prime p ∧ prime (p + 2)
 -- END
 end nat
 #+END_SRC
+
+#+RESULTS:
+
 Of course, what we really want are means to /prove/ such assertions,
 which is what we turn to next.
 
@@ -110,17 +133,14 @@ effect is that we can use the same notation we use for function
 application to apply theorems to parameters and hypotheses. For
 example, the theorem =and.left= in the standard library has the
 following type:
-#+BEGIN_SRC lean_text
-∀ {a b : Prop}, a ∧ b → a
-#+END_SRC
+: ∀ {a b : Prop}, a ∧ b → a
 Notice that the arguments =a= and =b= are implicit. This means that if
 =h= is any expression of the form =a ∧ b=, then =and.left h : a= is a
 proof of =a=. Similarly, =add_comm=, which expresses the commutativity
 of addition for any type that can be seen as an instance of an
 additive, commutative semigroup has the following type
-#+BEGIN_SRC lean_text
+
 ∀ {α : Type u} [s : add_comm_semigroup α] (a b : α), a + b = b + a
-#+END_SRC
 The second argument, that is, the relevant algebraic structure, is
 inferred by class inference. Given, say, =m n : ℕ=, the expression
 =add_comm m n= then represents the fact that =m + n = n + m=.
@@ -132,12 +152,18 @@ help us do this. We can provide such an expression explicitly:
 example (a b : Prop) : a ∧ b → b ∧ a :=
 λ h, and.intro (and.right h) (and.left h)
 #+END_SRC
+
+#+RESULTS:
+
 We can use projections and anonymous constructors to express the proof
 even more concisely, though somewhat cryptically:
 #+BEGIN_SRC lean
 example (a b : Prop) : a ∧ b → b ∧ a :=
 λ h, ⟨h^.right, h^.left⟩
 #+END_SRC
+
+#+RESULTS:
+
 In the opposite direction, Lean provides syntactic sugar that allows
 us to annotation assumptions and goals, and build a proof
 incrementally:
@@ -149,6 +175,8 @@ have hb : b, from and.right h,
 show b ∧ a, from and.intro hb ha
 #+END_SRC
 
+#+RESULTS:
+
 You can write proofs incrementally using =sorry= to temporarily fill
 in any intermediate step.
 #+BEGIN_SRC lean
@@ -158,6 +186,10 @@ have ha : a, from sorry,
 have hb : b, from sorry,
 show b ∧ a, from and.intro hb ha
 #+END_SRC
+
+#+RESULTS:
+: /private/var/folders/vt/_vxhqnb53fz1t5xcg1b59ljc0000gn/T/org-babel-lean99004F3u:1:8: warning: declaration '_example' uses sorry
+
 Lean notices that you are cheating, but will otherwise confirm that
 the proof is correct modulo the instances of =sorry=. Replacing one of
 them by an underscore tells Lean that it should infer the value of
@@ -175,11 +207,17 @@ begin
   repeat { assumption } 
 end
 #+END_SRC
+
+#+RESULTS:
+
 These commands can be used to invoke automation, like the simplifier:
 #+BEGIN_SRC lean
 example (a b : Prop) : a ∧ b → b ∧ a :=
 begin intro, simp_using_hs end
 #+END_SRC
+
+#+RESULTS:
+
 We can also invoke a superposition theorem prover:
 #+BEGIN_SRC lean
 import tools.super
@@ -187,6 +225,8 @@ import tools.super
 example (a b : Prop) : a ∧ b → b ∧ a :=
 by super
 #+END_SRC
+
+#+RESULTS:
 
 Anywhere Lean's parser expects an expression, you can enter tactic
 mode with a =begin ... end= block, or with the =by= keyword. 
@@ -198,6 +238,9 @@ have hb : b, from h^.right,
 show b ∧ a, 
   begin split, repeat { assumption } end
 #+END_SRC
+
+#+RESULTS:
+
 Conversely, in a =begin ... end= block, Lean provides various ways of
 specifying an explicit term:
 #+BEGIN_SRC lean
@@ -207,6 +250,9 @@ begin
   show b ∧ a, from and.intro hb ha
 end
 #+END_SRC
+
+#+RESULTS:
+
 We can even pass back and forth between the two modes freely:
 #+BEGIN_SRC lean
 example (a b : Prop) : a ∧ b → b ∧ a :=
@@ -215,6 +261,9 @@ begin
   show b ∧ a, from and.intro (by assumption) (by assumption)
 end
 #+END_SRC
+
+#+RESULTS:
+
 This lets us write proofs in a manner that lays out the structure
 explicitly and provides briefer hints and instructions where
 appropriate, just as in an ordinary mathematical proof.
@@ -233,6 +282,9 @@ have a, from this^.left,
 have b, from ‹a ∧ b›^.right,
 show b ∧ a, from and.intro ‹b› ‹a› 
 #+END_SRC
+
+#+RESULTS:
+
 These anonymous elements of the context are also visible to tactics
 and automation:
 #+BEGIN_SRC lean
@@ -248,6 +300,8 @@ have a, from this^.left,
 have b, from ‹a ∧ b›^.right,
 show b ∧ a, by simp_using_hs
 #+END_SRC
+
+#+RESULTS:
 
 ** Induction and Calculation
 
@@ -272,6 +326,9 @@ theorem pow_zero (a : α) : a^0 = 1 := rfl
 
 theorem pow_succ (a : α) (n : ℕ) : a^(succ n) = a * a^n := rfl
 #+END_SRC
+
+#+RESULTS:
+
 We use the rewrite tactic =rw= to rewrite an expression with a
 sequence of identities.
 
@@ -306,6 +363,9 @@ nat.induction_on n
       by rw [pow_succ, ih, -mul_assoc, -pow_succ, ih])
 -- END
 #+END_SRC
+
+#+RESULTS:
+
 The rule =nat.induction_on= is derived directly from the primitive
 governing recursion on the natural numbers, and works as you would
 expect: you prove the base case, and then carry out the induction
@@ -344,6 +404,9 @@ nat.induction_on n
                       ... = a^(succ n) * a : by rw -pow_succ)
 -- END
 #+END_SRC
+
+#+RESULTS:
+
 The =calc= mode can be used with inequalities and transitive relations
 that have been registered with the system.
 
@@ -374,6 +437,9 @@ theorem pow_succ' (a : α) : ∀ n, a^(succ n) = a^n * a
                        -pow_succ, pow_succ' n]
 -- END
 #+END_SRC
+
+#+RESULTS:
+
 Here the rewrite tactic uses the inductive hypothesis =pow_succ'
 n=. In an inductive proof like this, structurally decreasing calls can
 be used.
@@ -409,6 +475,9 @@ begin
 end
 -- END
 #+END_SRC 
+
+#+RESULTS:
+
 Here is another example of proof that uses the induction tactic.
 #+BEGIN_SRC lean
 universe variable u
@@ -444,6 +513,8 @@ end
 -- END
 #+END_SRC
 
+#+RESULTS:
+
 Recall the recursive definitions of the =append= and =length=
 functions for lists from [[file:03_Programming_in_Lean.org::#Recursive_Definitions][Section 3.2]].
 #+BEGIN_SRC lean
@@ -465,6 +536,9 @@ def length : list α → nat
 
 end hide
 #+END_SRC
+
+#+RESULTS:
+
 The natural way to prove things about these is to use induction on
 lists. Here are some examples.
 #+BEGIN_SRC lean
@@ -496,6 +570,9 @@ theorem ne_nil_of_length_eq_succ : ∀ {l : list α} {n : nat}, length l = succ 
 | (a::l) n h := begin intro leq, contradiction end
 -- END
 #+END_SRC
+
+#+RESULTS:
+
 The first three are tactic-style proofs, whereas the last two use the
 function definition package
 
